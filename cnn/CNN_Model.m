@@ -1,22 +1,24 @@
-%unzip('Dataset.zip');
+%Load the dataset into an image datastore and divide 70% of it for training
+%and 30% of it for validation
 imds = imageDatastore('DatasetSmaller', ...
     'IncludeSubfolders',true, ...
     'LabelSource','foldernames'); 
 [imdsTrain,imdsValidation] = splitEachLabel(imds,0.7);
 
+%Load the pre-trained mobilenetv2 network
 net = mobilenetv2;
-
-analyzeNetwork(net)
-
-net.Layers(1)
 
 inputSize = net.Layers(1).InputSize;
 
+%Convert the trained network into a layer graph
 lgraph = layerGraph(net);
 
+%Find the last learnable layer and the last classification layer that was
+%used in the pretrained model
+%We want to remove these so we can train the model on a new dataset
 [learnableLayer,classLayer] = findLayersToReplace(lgraph);
-[learnableLayer,classLayer] 
 
+%Comment Below
 numClasses = numel(categories(imdsTrain.Labels));
 
 if isa(learnableLayer,'nnet.cnn.layer.FullyConnectedLayer')
@@ -34,19 +36,18 @@ end
 
 lgraph = replaceLayer(lgraph,learnableLayer.Name,newLearnableLayer);
 
+%Comment Below
 newClassLayer = classificationLayer('Name','new_classoutput');
 lgraph = replaceLayer(lgraph,classLayer.Name,newClassLayer);
 
-figure('Units','normalized','Position',[0.3 0.3 0.4 0.4]);
-plot(lgraph)
-ylim([0,10])
 
+%Comment Below
 layers = lgraph.Layers;
 connections = lgraph.Connections;
 
-%layers(1:10) = freezeWeights(layers(1:10));
 lgraph = createLgraphUsingConnections(layers,connections);
 
+%Comment Below
 pixelRange = [-30 30];
 scaleRange = [0.9 1.1];
 imageAugmenter = imageDataAugmenter( ...
@@ -58,8 +59,10 @@ imageAugmenter = imageDataAugmenter( ...
 augimdsTrain = augmentedImageDatastore(inputSize(1:2),imdsTrain, ...
     'DataAugmentation',imageAugmenter);
 
+%Comment Below
 augimdsValidation = augmentedImageDatastore(inputSize(1:2),imdsValidation);
 
+%Comment Below
 miniBatchSize = 10;
 valFrequency = floor(numel(augimdsTrain.Files)/miniBatchSize);
 options = trainingOptions('sgdm', ...
@@ -72,8 +75,10 @@ options = trainingOptions('sgdm', ...
     'Verbose',false, ...
     'Plots','training-progress');
 
+%Comment Below
 net = trainNetwork(augimdsTrain,lgraph,options);
 
+%Comment Below
 [YPred,probs] = classify(net,augimdsValidation);
 accuracy = mean(YPred == imdsValidation.Labels)
 
@@ -87,6 +92,7 @@ for i = 1:4
     title(string(label) + ", " + num2str(100*max(probs(idx(i),:)),3) + "%");
 end
 
+%Enables the Model to be used with a webcam for video classification
 webcamlist;
 cam = webcam;
 preview(cam);
