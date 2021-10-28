@@ -1,6 +1,6 @@
 %Load the dataset into an image datastore and divide 70% of it for training
 %and 30% of it for validation
-imds = imageDatastore('DatasetSmaller', ...
+imds = imageDatastore('DatasetBigger', ...
     'IncludeSubfolders',true, ...
     'LabelSource','foldernames'); 
 [imdsTrain,imdsValidation] = splitEachLabel(imds,0.7);
@@ -80,7 +80,7 @@ options = trainingOptions('sgdm', ...
 %and the options
 net = trainNetwork(augimdsTrain,lgraph,options);
 
-%Classify four random images from the validation image set 
+%Classify four random images from the validation image set  
 [YPred,probs] = classify(net,augimdsValidation);
 accuracy = mean(YPred == imdsValidation.Labels)
 
@@ -96,6 +96,8 @@ end
 
 %Enables the Model to be used with a webcam for video classification
 cam = webcam;
+webcamlist;
+preview();
 
 inputSize = net.Layers(1).InputSize(1:2)
 
