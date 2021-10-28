@@ -62,8 +62,8 @@ augimdsTrain = augmentedImageDatastore(inputSize(1:2),imdsTrain, ...
 %Resize the validation images
 augimdsValidation = augmentedImageDatastore(inputSize(1:2),imdsValidation);
 
-
-%This is where we can adjust parameters before training the network
+%We start the train the model here.
+%This is where we can adjust 
 miniBatchSize = 10;
 valFrequency = floor(numel(augimdsTrain.Files)/miniBatchSize);
 options = trainingOptions('sgdm', ...
@@ -76,11 +76,10 @@ options = trainingOptions('sgdm', ...
     'Verbose',false, ...
     'Plots','training-progress');
 
-%Train the network according the the augmented training images, layer graph
-%and the options
+%COMMENT BELOW
 net = trainNetwork(augimdsTrain,lgraph,options);
 
-%Classify four random images from the validation image set 
+%COMMENT BELOW 
 [YPred,probs] = classify(net,augimdsValidation);
 accuracy = mean(YPred == imdsValidation.Labels)
 
