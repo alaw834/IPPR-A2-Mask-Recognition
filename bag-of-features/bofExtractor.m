@@ -3,4 +3,4 @@ imds = imageDatastore(setDir,'IncludeSubfolders',true,'LabelSource',...
     'foldernames');
 
 extractor = @exampleBagOfFeaturesExtractor;
-bag = bagOfFeatures(imds,'CustomExtractor',extractor)
+bag = bagOfFeatures(imds,"CustomExtractor",extractor)
