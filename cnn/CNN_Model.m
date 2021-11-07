@@ -1,6 +1,6 @@
 %Load the dataset into an image datastore and divide 70% of it for training
 %and 30% of it for validation
-imds = imageDatastore('DatasetBigger', ...
+imds = imageDatastore('UnCropped3Targets', ...
     'IncludeSubfolders',true, ...
     'LabelSource','foldernames'); 
 [imdsTrain,imdsValidation] = splitEachLabel(imds,0.7);
@@ -43,10 +43,13 @@ lgraph = replaceLayer(lgraph,learnableLayer.Name,newLearnableLayer);
 newClassLayer = classificationLayer('Name','new_classoutput');
 lgraph = replaceLayer(lgraph,classLayer.Name,newClassLayer);
 
+%We will set the inputSize parameter to the one the network accepts 
+inputSize = net.Layers(1).InputSize;
+
 %We want to resize the training images to what the network requires.
 %Some processing will also be done to prevent the network from overfitting
 %the training images 
-%Processing techniques include flipping on the Y axis, scaling them
+%Processing techniques include flipping on the X axis, scaling them
 %randomly and moving them randomly 
 pixelRange = [-30 30];
 scaleRange = [0.9 1.1];
@@ -84,10 +87,10 @@ net = trainNetwork(augimdsTrain,lgraph,options);
 [YPred,probs] = classify(net,augimdsValidation);
 accuracy = mean(YPred == imdsValidation.Labels)
 
-idx = randperm(numel(imdsValidation.Files),4);
+idx = randperm(numel(imdsValidation.Files),25);
 figure
-for i = 1:4
-    subplot(2,2,i)
+for i = 1:25
+    subplot(5,5,i)
     I = readimage(imdsValidation,idx(i));
     imshow(I)
     label = YPred(idx(i));
@@ -96,8 +99,6 @@ end
 
 %Enables the Model to be used with a webcam for video classification
 cam = webcam;
-webcamlist;
-preview();
 
 inputSize = net.Layers(1).InputSize(1:2)
 
